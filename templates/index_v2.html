@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Madrid House Price Estimator</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <style>
+        html, body {
+            height: 100%;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        .form-group label {
+            font-weight: bold;
+        }
+        .form-control {
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+        }
+        .file-upload {
+            margin: 20px 0;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        .scrollable-form {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .accordion-button {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-home"></i> Madrid House Price Estimator</h1>
+        <div class="accordion" id="accordionExample">
+            <div class="card">
+                <div class="card-header" id="headingOne">
+                    <h2 class="mb-0">
+                        <button class="btn btn-link btn-block text-left accordion-button" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            Section 1
+                        </button>
+                    </h2>
+                </div>
+                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+                    <div class="card-body">
+                        <form id="form-section1">
+                            <div class="row">
+                                <!-- Input fields for section 1 will be generated here -->
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" id="headingTwo">
+                    <h2 class="mb-0">
+                        <button class="btn btn-link btn-block text-left accordion-button collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            Section 2
+                        </button>
+                    </h2>
+                </div>
+                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+                    <div class="card-body">
+                        <form id="form-section2">
+                            <div class="row">
+                                <!-- Input fields for section 2 will be generated here -->
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- Add more sections as needed -->
+        </div>
+        <button class="btn btn-primary btn-block" onclick="makePrediction()">Estimate Price</button>
+        <div class="file-upload mt-4">
+            <label for="file-input" class="btn btn-secondary btn-block">Upload CSV for Batch Processing</label>
+            <input type="file" id="file-input" accept=".csv" style="display: none;">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="uploadFile()">Batch Estimate Prices</button>
+        <div class="result" id="result"></div>
+        <div class="result" id="batch-result"></div>
+    </div>
+    <!-- Bootstrap and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Fetch feature names and types from the server and generate the form
+        fetch('/features')
+            .then(response => response.json())
+            .then(data => {
+                const featuresTypes = data.features_dtypes;
+                
+                // Split features into sections
+                const section1 = featuresTypes.slice(0, Math.ceil(featuresTypes.length / 2));
+                const section2 = featuresTypes.slice(Math.ceil(featuresTypes.length / 2));
+
+                generateFormFields(section1, 'form-section1');
+                generateFormFields(section2, 'form-section2');
+            });
+
+        function generateFormFields(features, formId) {
+            const formContainer = document.getElementById(formId).querySelector('.row');
+            features.forEach(([feature, type]) => {
+                const colDiv = document.createElement('div');
+                colDiv.className = 'col-md-6'; // Use col-md-6 to make two columns
+
+                const formGroupDiv = document.createElement('div');
+                formGroupDiv.className = 'form-group';
+
+                const label = document.createElement('label');
+                label.for = feature;
+                label.innerText = feature.charAt(0).toUpperCase() + feature.slice(1).replace(/_/g, ' ') + ':';
+
+                const input = document.createElement('input');
+                input.id = feature;
+                input.placeholder = feature.charAt(0).toUpperCase() + feature.slice(1).replace(/_/g, ' ');
+                input.name = feature;
+                input.className = 'form-control';
+
+                if (type === 'numerical') {
+                    input.type = 'number';
+                } else if (type === 'string') {
+                    input.type = 'text';
+                }
+
+                formGroupDiv.appendChild(label);
+                formGroupDiv.appendChild(input);
+                colDiv.appendChild(formGroupDiv);
+                formContainer.appendChild(colDiv);
+            });
+        }
+
+        function makePrediction() {
+            const featureValues = {};
+            const inputs = document.querySelectorAll('input');
+
+            inputs.forEach(input => {
+                featureValues[input.id] = input.type === 'number' ? parseFloat(input.value) : input.value;
+            });
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(featureValues),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('result');
+                if (data.predicted_price) {
+                    resultDiv.innerHTML = `<h2>Estimated Price</h2><p>${data.predicted_price}</p><p>${data.warnings.join('<br>')}</p>`;
+                } else {
+                    resultDiv.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function uploadFile() {
+            const fileInput = document.getElementById('file-input');
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/batch_predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                } else {
+                    throw new Error('Failed to generate predictions.');
+                }
+            })
+            .then(blob => {
+                // Create a download link for the blob
+                const downloadUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = 'predictions.csv';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(downloadUrl);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>

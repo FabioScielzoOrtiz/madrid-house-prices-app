@@ -1,0 +1,9 @@
+Flask==2.0.1
+Werkzeug==2.0.1
+numpy==1.21.0
+polars
+scikit-learn==1.3.1
+PyMachineLearning==0.0.3
+lightgbm
+pandas
+

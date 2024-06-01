@@ -1,0 +1,6 @@
+has_parking, n_rooms,sq_mt_built,n_bathrooms,n_floors,sq_mt_allotment,floor,is_renewal_needed,has_lift,is_exterior,energy_certificate,house_type
+True,3,85,2,1,100,2,False,True,True,1,House type 1
+False,4,120,3,2,150,1,True,False,True,2,House type 1
+True,2,60,1,1,80,3,False,True,False,2,House type 3
+False,3,95,2,1,700,4,False,False,True,3,House type 3
+True,3,110,2,2,500,1,True,False,True,4,House type 2
